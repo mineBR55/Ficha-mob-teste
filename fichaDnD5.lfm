@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form dataType="br.com.mineBR55.MobDnD5e_S3" formType="sheetTemplate" title="Mob DnD 5e" description="Ficha de monstros para DnD 5e" name="frmDnD5" theme="dark" cacheMode="time">
+	<import file="styles.xml"/>
+	<import file="templates.xml"/>
+	
+	<tabControl align="client" name="pgcPrincipal">
+		<tab title="Frente">
+			<import file="frente.xml"/>
+		</tab>
+		
+		<tab title="Traços">
+			<import file="caracteristicas.xml"/>
+		</tab>
+		
+		<tab title="Ações">
+			<import file="equipamento.xml"/>
+		</tab>
+
+		<tab title="Spellcasting">
+			<import file="magias.xml"/>
+		</tab>
+
+		<tab title="Innate Spellcast">
+			<import file="magias_innate.xml"/>
+		</tab>
+
+		<tab title="@@DnD5e.tabControl.tab.counter">
+			<import file="contadores.xml"/>
+		</tab>
+
+		<tab title="@@DnD5e.tabControl.tab.annotations">
+						<rectangle class="fundo">
+				<checkBox align="right" width="15" field="outros.anotacoes_melhorado">
+					<event name="onChange">
+						if sheet then
+							self.anotacoesFancy:setVisible(sheet.outros.anotacoes_melhorado);
+							self.anotacoesOld:setVisible(not (sheet.outros.anotacoes_melhorado));
+						end;
+					</event>
+				</checkBox>
+				<richEdit name="anotacoesFancy" align="client" backgroundColor="#333333" defaultFontColor="white" field="outros.anotacoes2" hideSelection="false" defaultFontSize="15" animateImages="true" margins="{left=2, right=2, top=2, bottom=2}" visible="false"/>
+				<textEditor name="anotacoesOld" align="client" field="outros.anotacoes" class="transparente"  margins="{left=2, right=2, top=2, bottom=2}" visible="true"/>
+			</rectangle>
+		</tab>
+
+		<tab title="@@DnD5e.tabControl.tab.other">
+			<!-- Combobox de exportar ficha -->
+			<button left="0" top="0" width="150" height="20" text="@@Dnd5e.other.export" >
+				<event name="onClick">
+					local xml = NDB.exportXML(sheet);
+
+					local export = {};
+					Utils.binaryEncode(export, "utf8", xml);
+
+					local stream = Utils.newMemoryStream();
+					stream:write(export);
+
+					Dialogs.saveFile(LANG("Dnd5e.other.save"), stream, "sheet.xml", "application/xml",
+						function()
+							stream:close();
+							showMessage(LANG("Dnd5e.other.exported"));
+						end);
+				</event>
+			</button>
+			<!-- Combobox de importar ficha -->
+			<button left="0" top="25" width="150" height="20" text="@@Dnd5e.other.import" >
+				<event name="onClick">
+					Dialogs.openFile(LANG("Dnd5e.other.import"), "application/xml", false, 
+						function(arquivos)
+							local arq = arquivos[1];
+
+							local import = {};
+							arq.stream:read(import, arq.stream.size);
+
+							local xml = Utils.binaryDecode(import, "utf8");
+
+							NDB.importXML(sheet, xml);
+						end);
+				</event>
+			</button>
+
+			<button left="0" top="50" width="150" height="20" text="@@Dnd5e.other.shortRest">
+				<event name="onClick">
+		            local nodes = NDB.getChildNodes(sheet.contadores); 
+		            for i=1, #nodes, 1 do
+		            	-- only change short rest counters
+		            	local resetVal = nodes[i].selectedResetVal
+		                if nodes[i].selectedResetTime == "Descanso Curto" then
+
+		                	if resetVal == "Completa" then
+		                		nodes[i].valCur = nodes[i].valMax
+		                	elseif resetVal == "Recupera Metade (⌃)" then
+		                		nodes[i].valCur = math.min(nodes[i].valMax, nodes[i].valCur + math.ceil(nodes[i].valMax/2));
+		                	elseif resetVal == "Recupera Metade (⌄)" then
+		                		nodes[i].valCur = math.min(nodes[i].valMax, nodes[i].valCur + math.floor(nodes[i].valMax/2));
+		                	elseif resetVal == "Muda em" or resetVal == "Muda para" then
+
+								if not (resetVal == "Muda em" and nodes[i].valCur == nodes[i].valMax) then
+									local rolagem = Firecast.interpretarRolagem(common.interpreta(nodes[i], nodes[i].selectedResetVal2));
+									if not rolagem.possuiAlgumDado then
+										rolagem = Firecast.interpretarRolagem("1d1-1"):concatenar(rolagem);
+										rolagem:rolarLocalmente();
+										if resetVal == "Muda em" then
+											nodes[i].valCur = math.min(nodes[i].valMax, nodes[i].valCur + rolagem.resultado);
+										else
+											nodes[i].valCur = rolagem.resultado;
+										end;
+									else
+										common.getMesa(nodes[i]).activeChat:rolarDados(rolagem, nodes[i].name, function(arolagem)
+											if resetVal == "Muda em" then
+												nodes[i].valCur = math.min(nodes[i].valMax, nodes[i].valCur + arolagem.resultado);
+											else
+												nodes[i].valCur = arolagem.resultado;
+											end;
+										end);
+									end;
+								end;
+		                	end
+		                end
+		            end
+		        </event>
+			</button>
+
+			<button left="0" top="75" width="150" height="20" text="@@Dnd5e.other.longRest">
+				<event name="onClick">
+		            local nodes = NDB.getChildNodes(sheet.contadores); 
+		            for i=1, #nodes, 1 do
+		            	-- only change short rest counters
+		            	local resetVal = nodes[i].selectedResetVal
+		                if nodes[i].selectedResetTime == "Descanso Longo" then
+
+		                	if resetVal == "Completa" then
+		                		nodes[i].valCur = nodes[i].valMax
+		                	elseif resetVal == "Recupera Metade (⌃)" then
+		                		nodes[i].valCur = math.min(nodes[i].valMax, nodes[i].valCur + math.ceil(nodes[i].valMax/2));
+		                	elseif resetVal == "Recupera Metade (⌄)" then
+		                		nodes[i].valCur = math.min(nodes[i].valMax, nodes[i].valCur + math.floor(nodes[i].valMax/2));
+		                	elseif resetVal == "Muda em" or resetVal == "Muda para" then
+
+								if not (resetVal == "Muda em" and nodes[i].valCur == nodes[i].valMax) then
+									local rolagem = Firecast.interpretarRolagem(common.interpreta(nodes[i], nodes[i].selectedResetVal2));
+									if not rolagem.possuiAlgumDado then
+										rolagem = Firecast.interpretarRolagem("1d1-1"):concatenar(rolagem);
+										rolagem:rolarLocalmente();
+										if resetVal == "Muda em" then
+											nodes[i].valCur = math.min(nodes[i].valMax, nodes[i].valCur + rolagem.resultado);
+										else
+											nodes[i].valCur = rolagem.resultado;
+										end;
+									else
+										common.getMesa(nodes[i]).activeChat:rolarDados(rolagem, nodes[i].name, function(arolagem)
+											if resetVal == "Muda em" then
+												nodes[i].valCur = math.min(nodes[i].valMax, nodes[i].valCur + arolagem.resultado);
+											else
+												nodes[i].valCur = arolagem.resultado;
+											end;
+										end);
+									end;
+								end;
+		                	end
+		                else
+		                	nodes[i].valCur = nodes[i].valMax
+		                end
+		            end
+				</event>
+			</button>
+
+			<!-- Exportar resumo de monstro (TXT) para salvar/imprimir em PDF fora do Firecast -->
+			<button left="160" top="0" width="190" height="20" text="Exportar Statblock (.txt)">
+				<event name="onClick">
+					local function txt(v)
+						if v == nil then return "" end;
+						return tostring(v);
+					end;
+
+					local function trim(v)
+						v = txt(v);
+						v = v:gsub("^%s+", ""):gsub("%s+$", "");
+						return v;
+					end;
+
+					local function nonEmpty(v)
+						return trim(v) ~= "";
+					end;
+
+					local function getPath(path)
+						local cur = sheet;
+						for part in string.gmatch(path, "[^%.]+") do
+							if cur == nil then return nil end;
+							cur = cur[part];
+						end;
+						return cur;
+					end;
+
+					local function addLine(t, v)
+						if nonEmpty(v) then t[#t+1] = v end;
+					end;
+
+					local function attrLine(label, field)
+						local raw = tonumber(sheet[field]) or tonumber(getPath("atributos." .. field .. ".total")) or 10;
+						local mod = math.floor((raw - 10) / 2);
+						local modStr = (mod >= 0 and "+" or "") .. tostring(mod);
+						return string.format("%s %d (%s)", label, raw, modStr);
+					end;
+
+					local function joinKV(items)
+						local out = {};
+						for _, it in ipairs(items) do
+							if nonEmpty(it[2]) then
+								out[#out+1] = it[1] .. " " .. trim(it[2]);
+							end;
+						end;
+						return table.concat(out, ", ");
+					end;
+
+					local function exportActionNodes()
+						local lines = {};
+						if sheet.mobAcoesLista == nil then return "" end;
+						local nodes = NDB.getChildNodes(sheet.mobAcoesLista) or {};
+						for i = 1, #nodes, 1 do
+							local n = nodes[i];
+							local nome = trim(n.texto);
+							if nome == "" then nome = "Ação " .. tostring(i) end;
+							local tags = {};
+							if nonEmpty(n.tipoAcao) then tags[#tags+1] = trim(n.tipoAcao) end;
+							if nonEmpty(n.usoTipo) then tags[#tags+1] = trim(n.usoTipo) end;
+							if nonEmpty(n.rechargeMin) then tags[#tags+1] = "Recharge " .. trim(n.rechargeMin) .. "-6" end;
+							local header = "- " .. nome;
+							if #tags &gt; 0 then
+								header = header .. " [" .. table.concat(tags, "; ") .. "]";
+							end;
+							lines[#lines+1] = header;
+							local detalhe = {};
+							if nonEmpty(n.bonusAtaque) then detalhe[#detalhe+1] = "Ataque: " .. trim(n.bonusAtaque) end;
+							if nonEmpty(n.alcance) then detalhe[#detalhe+1] = "Alcance: " .. trim(n.alcance) end;
+							if nonEmpty(n.alvo) then detalhe[#detalhe+1] = "Alvo: " .. trim(n.alvo) end;
+							if nonEmpty(n.dano) then detalhe[#detalhe+1] = "Dano: " .. trim(n.dano) end;
+							if nonEmpty(n.tipoDano) then detalhe[#detalhe+1] = "Tipo: " .. trim(n.tipoDano) end;
+							if nonEmpty(n.cdSave) then detalhe[#detalhe+1] = "CD: " .. trim(n.cdSave) end;
+							if nonEmpty(n.atribSave) then detalhe[#detalhe+1] = "Atrib: " .. trim(n.atribSave) end;
+							if #detalhe &gt; 0 then lines[#lines+1] = "  " .. table.concat(detalhe, " | ") end;
+							if nonEmpty(n.descricao) then lines[#lines+1] = "  " .. trim(n.descricao) end;
+						end;
+						return table.concat(lines, "\n");
+					end;
+
+					local linhas = {};
+					local nome = trim(sheet.nome);
+					if nome == "" then nome = "Mob sem nome" end;
+					linhas[#linhas+1] = string.upper(nome);
+
+					local subtipo = joinKV({
+						{"Tipo:", sheet.classeENivel},
+						{"Alinhamento:", sheet.tendencia}
+					});
+					addLine(linhas, subtipo);
+					linhas[#linhas+1] = "";
+
+					local defBase = joinKV({
+						{"CA:", sheet.CA},
+						{"PV Máx:", sheet.PVMax},
+						{"PV Atual:", sheet.PV},
+						{"PV Temp:", sheet.PVTemporario},
+						{"CR:", sheet.CR},
+						{"PB:", sheet.bonusProficiencia}
+					});
+					addLine(linhas, defBase);
+
+					local hitDice = joinKV({
+						{"Hit Dice:", (nonEmpty(sheet.DadosDeVida) and (txt(sheet.DadosDeVida) .. (nonEmpty(sheet.mobHitDieTipo) and (" " .. txt(sheet.mobHitDieTipo)) or "")) or nil)},
+						{"Restantes:", sheet.DadosDeVidaAtuais}
+					});
+					addLine(linhas, hitDice);
+
+					local speeds = joinKV({
+						{"Walk:", sheet.deslocamento},
+						{"Fly:", sheet.mobMoveFly},
+						{"Burrow:", sheet.mobMoveBurrow},
+						{"Climb:", sheet.mobMoveClimb},
+						{"Swim:", sheet.mobMoveSwim}
+					});
+					if nonEmpty(speeds) then linhas[#linhas+1] = "Movimentações: " .. speeds end;
+
+					local senses = joinKV({
+						{"Blindsight:", sheet.mobSenseBlindsight},
+						{"Darkvision:", sheet.mobSenseDarkvision},
+						{"Tremorsense:", sheet.mobSenseTremorsense},
+						{"Truesight:", sheet.mobSenseTruesight},
+						{"Outros:", sheet.sentidos}
+					});
+					if nonEmpty(senses) then linhas[#linhas+1] = "Sentidos: " .. senses end;
+
+					if nonEmpty(sheet.mobSaves) then linhas[#linhas+1] = "Saves: " .. trim(sheet.mobSaves) end;
+					if nonEmpty(sheet.mobSkills) then linhas[#linhas+1] = "Skills: " .. trim(sheet.mobSkills) end;
+					if nonEmpty(sheet.idiomas) then linhas[#linhas+1] = "Idiomas: " .. trim(sheet.idiomas) end;
+					linhas[#linhas+1] = "";
+
+					linhas[#linhas+1] = "ATRIBUTOS";
+					linhas[#linhas+1] = table.concat({
+						attrLine("FOR", "forca"),
+						attrLine("DES", "destreza"),
+						attrLine("CON", "constituicao"),
+						attrLine("INT", "inteligencia"),
+						attrLine("SAB", "sabedoria"),
+						attrLine("CAR", "carisma")
+					}, " | ");
+					linhas[#linhas+1] = "";
+
+					if nonEmpty(sheet.mobTraitsTexto) then
+						linhas[#linhas+1] = "TRAÇOS";
+						linhas[#linhas+1] = trim(sheet.mobTraitsTexto);
+						linhas[#linhas+1] = "";
+					end;
+
+					if nonEmpty(sheet.mobAtaquesTexto) then
+						linhas[#linhas+1] = "ATTACKS";
+						linhas[#linhas+1] = trim(sheet.mobAtaquesTexto);
+						linhas[#linhas+1] = "";
+					end;
+
+					local acoesLista = exportActionNodes();
+					if nonEmpty(acoesLista) then
+						linhas[#linhas+1] = "AÇÕES (LISTA)";
+						linhas[#linhas+1] = acoesLista;
+						linhas[#linhas+1] = "";
+					end;
+
+					if nonEmpty(sheet.mobAcoesBonusTexto) then
+						linhas[#linhas+1] = "AÇÕES BÔNUS";
+						linhas[#linhas+1] = trim(sheet.mobAcoesBonusTexto);
+						linhas[#linhas+1] = "";
+					end;
+
+					if nonEmpty(sheet.mobReacoesTexto) then
+						linhas[#linhas+1] = "REAÇÕES";
+						linhas[#linhas+1] = trim(sheet.mobReacoesTexto);
+						linhas[#linhas+1] = "";
+					end;
+
+					if nonEmpty(sheet.mobAcoesLendariasTexto) then
+						linhas[#linhas+1] = "AÇÕES LENDÁRIAS";
+						linhas[#linhas+1] = trim(sheet.mobAcoesLendariasTexto);
+						linhas[#linhas+1] = "";
+					end;
+
+					if nonEmpty(sheet.mobEfeitosRegionais) then
+						linhas[#linhas+1] = "EFEITOS REGIONAIS";
+						linhas[#linhas+1] = trim(sheet.mobEfeitosRegionais);
+						linhas[#linhas+1] = "";
+					end;
+
+					local conteudo = table.concat(linhas, "\n");
+					local bytes = {};
+					Utils.binaryEncode(bytes, "utf8", conteudo);
+					local stream = Utils.newMemoryStream();
+					stream:write(bytes);
+
+					Dialogs.saveFile("Salvar Statblock", stream, "mob_statblock.txt", "text/plain",
+						function()
+							stream:close();
+							showMessage("Statblock exportado em TXT. Você pode imprimir/salvar em PDF pelo sistema.");
+						end);
+				</event>
+			</button>
+
+			<button left="160" top="25" width="190" height="20" text="Copiar Statblock">
+				<event name="onClick">
+					local nome = tostring((sheet and sheet.nome) or "Mob sem nome");
+					local resumo = string.upper(nome) .. "\nCR " .. tostring((sheet and sheet.CR) or "") .. " | CA " .. tostring((sheet and sheet.CA) or "") .. " | PV " .. tostring((sheet and sheet.PVMax) or "");
+					if System ~= nil and System.setClipboardText ~= nil then
+						System.setClipboardText(resumo);
+						showMessage("Resumo copiado para a área de transferência.");
+					else
+						showMessage("Clipboard não disponível nesta versão. Use Exportar Statblock (.txt).");
+					end;
+				</event>
+			</button>
+		</tab>
+	</tabControl>
+</form>

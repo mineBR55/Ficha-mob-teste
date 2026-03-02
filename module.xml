@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module sdkVersion="3.7b">
+    <id>br.com.mineBR55.MobDnD5e</id>
+    <version>1.2.4-mob.2</version>
+
+    <settings>
+        <automaticStringLocalization>true</automaticStringLocalization>
+    </settings>
+
+    <info lang="pt-BR">
+        <name>Mob DnD 5e</name>
+        <description>Ficha de monstros de D&amp;D 5e (fork da ficha oficial)</description>
+        <author>mineBR55 (base Firecast)</author>
+        <site>https://github.com/mineBR55/Teste</site>
+        <contact>minebr55@gmail.com</contact>
+    </info>
+
+    <info lang="en">
+        <name>Mob DnD 5e</name>
+        <description>D&amp;D 5e monster sheet (fork of the official sheet)</description>
+        <author>mineBR55 (base Firecast)</author>
+        <site>https://github.com/mineBR55/Teste</site>
+        <contact>minebr55@gmail.com</contact>
+    </info>
+</module>

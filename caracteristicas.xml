@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rectangle class="fundo">
+    <scrollBox align="client">
+        <flowLayout class="tile" align="top" autoHeight="true" margins="{left=10,right=10,top=10}" lineSpacing="6" horzAlign="center">
+
+            <flowLayout class="oneLineTile" autoHeight="true" horzAlign="justify" avoidScale="true">
+                <flowPart minWidth="420" maxWidth="1600" height="120" frameStyle="frames/panel4transp/frame.xml">
+                    <label align="top" text="Informações de Traços" height="22" class="tituloCampo" horzTextAlign="center"/>
+                    <layout align="top" height="28" margins="{left=6,right=6,top=2}">
+                        <label align="left" width="80" text="Saves" class="tituloCampo" fontSize="11"/>
+                        <edit align="client" field="mobSaves" class="transparente"/>
+                    </layout>
+                    <layout align="top" height="28" margins="{left=6,right=6}">
+                        <label align="left" width="80" text="Skills" class="tituloCampo" fontSize="11"/>
+                        <edit align="client" field="mobSkills" class="transparente"/>
+                    </layout>
+                    <layout align="client" margins="{left=6,right=6,bottom=6}">
+                        <label align="left" width="80" text="Idiomas" class="tituloCampo" fontSize="11"/>
+                        <edit align="client" field="idiomas" class="transparente"/>
+                    </layout>
+                </flowPart>
+
+                <flowPart minWidth="420" maxWidth="1600" height="120" frameStyle="frames/panel4transp/frame.xml">
+                    <label align="top" text="Resistências Lendárias" height="22" class="tituloCampo" horzTextAlign="center"/>
+                    <layout align="top" height="34" margins="{left=8,right=8,top=6}">
+                        <label align="left" width="50" text="Atual" class="tituloCampo" fontSize="11"/>
+                        <edit align="left" width="55" field="mobResLendAtual" class="transparente" horzTextAlign="center"/>
+                        <label align="left" width="38" text="/" class="tituloCampo" horzTextAlign="center"/>
+                        <edit align="left" width="55" field="mobResLendMax" class="transparente" horzTextAlign="center"/>
+                        <label align="client" text="máximo por dia" class="tituloCampo" fontSize="10" margins="{left=8}" vertTextAlign="center"/>
+                    </layout>
+                    <layout align="top" height="30" margins="{left=8,right=8}">
+                        <button align="left" width="70" text="-1">
+                            <event name="onClick">
+                                local cur = tonumber(sheet.mobResLendAtual) or 0;
+                                cur = math.max(0, cur - 1);
+                                sheet.mobResLendAtual = cur;
+                            </event>
+                        </button>
+                        <button align="left" width="70" text="+1" margins="{left=6}">
+                            <event name="onClick">
+                                local cur = tonumber(sheet.mobResLendAtual) or 0;
+                                local maxv = tonumber(sheet.mobResLendMax) or 3;
+                                cur = math.min(maxv, cur + 1);
+                                sheet.mobResLendAtual = cur;
+                            </event>
+                        </button>
+                        <button align="left" width="90" text="Resetar" margins="{left=6}">
+                            <event name="onClick">
+                                local maxv = tonumber(sheet.mobResLendMax) or 3;
+                                sheet.mobResLendAtual = maxv;
+                            </event>
+                        </button>
+                        <button align="client" text="Usar 1" margins="{left=6}">
+                            <event name="onClick">
+                                local cur = tonumber(sheet.mobResLendAtual) or 0;
+                                sheet.mobResLendAtual = math.max(0, cur - 1);
+                            </event>
+                        </button>
+                    </layout>
+                    <label align="client" text="Dica: preencha 3/3 para monstros com Resistência Lendária (3/dia)." class="tituloCampo" fontSize="10" margins="{left=8,right=8,bottom=4}" wordWrap="true"/>
+                </flowPart>
+            </flowLayout>
+
+            <flowLineBreak/>
+
+            <flowLayout class="oneLineTile" autoHeight="true" horzAlign="justify" avoidScale="true">
+                <flowPart minWidth="260" maxWidth="420" height="260" frameStyle="frames/panel4transp/frame.xml">
+                    <label align="top" text="Foto do Mob" height="22" class="tituloCampo" horzTextAlign="center"/>
+                    <image align="client" field="mobFoto" editable="true" style="autoFit" margins="{left=8,right=8,top=4,bottom=8}"/>
+                </flowPart>
+
+                <flowPart minWidth="560" maxWidth="2400" height="260" frameStyle="frames/panel1/frame.xml">
+                    <label align="top" text="Traços do Monstro" height="22" class="tituloCampo" horzTextAlign="center"/>
+                    <textEditor align="client" field="mobTraitsTexto" class="transparente" margins="{left=6,right=6,top=4,bottom=6}"/>
+                </flowPart>
+            </flowLayout>
+
+            <flowLineBreak/>
+
+            <flowLayout class="oneLineTile" autoHeight="true" horzAlign="justify" avoidScale="true">
+                <flowPart minWidth="420" maxWidth="1600" height="210" frameStyle="frames/panel4transp/frame.xml">
+                    <label align="top" text="Conjuração / Traços Extras" height="22" class="tituloCampo" horzTextAlign="center"/>
+                    <textEditor align="client" field="mobTraitsExtras" class="transparente" margins="{left=6,right=6,top=4,bottom=6}"/>
+                </flowPart>
+
+                <flowPart minWidth="420" maxWidth="1600" height="210" frameStyle="frames/panel4transp/frame.xml">
+                    <label align="top" text="Efeitos Regionais" height="22" class="tituloCampo" horzTextAlign="center"/>
+                    <textEditor align="client" field="mobEfeitosRegionais" class="transparente" margins="{left=6,right=6,top=4,bottom=6}"/>
+                </flowPart>
+            </flowLayout>
+
+            <flowLineBreak/>
+
+            <flowLayout class="oneLineTile" autoHeight="true" horzAlign="justify" avoidScale="true">
+                <flowPart minWidth="420" maxWidth="1600" height="190" frameStyle="frames/panel4transp/frame.xml">
+                    <label align="top" text="Ações de Covil / Ambiente" height="22" class="tituloCampo" horzTextAlign="center"/>
+                    <textEditor align="client" field="mobLairActions" class="transparente" margins="{left=6,right=6,top=4,bottom=6}"/>
+                </flowPart>
+
+                <flowPart minWidth="420" maxWidth="1600" height="190" frameStyle="frames/panel4transp/frame.xml">
+                    <label align="top" text="Notas Táticas / Encontro" height="22" class="tituloCampo" horzTextAlign="center"/>
+                    <textEditor align="client" field="mobTraitsNotas" class="transparente" margins="{left=6,right=6,top=4,bottom=6}"/>
+                </flowPart>
+            </flowLayout>
+
+        </flowLayout>
+    </scrollBox>
+</rectangle>

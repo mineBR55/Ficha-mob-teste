@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form name="frmOptAtaque" height="30" cacheMode="time">
+ <import file="templates.xml"/>
+ <import file="styles.xml"/>
+
+ <optAtaque align="top" enabled="true" alcanceOuNome="nome"/>
+
+ <dataLink field="nome" defaultValue="NOME"/>
+ <dataLink field="ataque" defaultValue=""/>
+ <dataLink field="dano" defaultValue=""/>
+ <dataLink field="tipo" defaultValue=""/>
+ <!-- munição e quantidade removidos para mob sheet -->
+</form>

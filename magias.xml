@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rectangle class="fundo">
+	<style>
+		flowPart.magicHeader {
+			avoidScale: true;
+			minScaledWidth: 280;
+			minWidth: 300;
+			maxWidth: 600;
+			height: 80;
+		}
+		label.magicLevelNumber { horzTextAlign: center; vertTextAlign: center; fontSize: 18; }
+		edit.magicLevelInformation { horzTextAlign: center; vertTextAlign: center; fontSize: 18; transparent: true; }
+		flowLayout.magicTile, flowPart.magicTile { margins: {left=10, right=10, top=4, bottom=4}; }
+	</style>
+
+	<template name="magicHeader0Spc">
+		<flowPart class="magicHeader" frameStyle="frames/magicHeader/header0.xml">
+			<label frameRegion="RegiaoSmallTitulo" text="0" class="magicLevelNumber"/>
+			<label frameRegion="RegiaoConteudo" text="@@DnD5e.spells.cantrip" fontSize="15" horzTextAlign="center" vertTextAlign="center"/>
+		</flowPart>
+	</template>
+
+	<template name="magicHeaderNSpc">
+		<flowPart class="magicHeader" frameStyle="frames/magicHeader/header1.xml">
+			<label frameRegion="RegiaoSmallTitulo" text="$(level)" class="magicLevelNumber"/>
+			<edit frameRegion="RegiaoConteudo1" class="magicLevelInformation" field="magias.espacosTotais$(level)"/>
+			<dataLink field="magias.espacosTotais$(level)" defaultValue="@@DnD5e.spells.uses.total"/>
+			<edit frameRegion="RegiaoConteudo2" class="magicLevelInformation" field="magias.espacosGastos$(level)"/>
+			<dataLink field="magias.espacosGastos$(level)" defaultValue="@@DnD5e.spells.uses.spent"/>
+		</flowPart>
+	</template>
+
+	<template name="magicRecordListSpc">
+		<!-- baseName = uniqueName("flwMagicRecordListSpc");
+			if (tonumber(level) <= 0) then
+				templateFormForThisGroup = "frmMagiaItemSemCheckbox";
+			else
+				templateFormForThisGroup = "frmMagiaItemComCheckbox";
+			end;
+		-->
+		<flowPart minWidth="300" maxWidth="600" minScaledWidth="280" name="$(baseName)">
+			<script><![CDATA[
+				rawset(self.$(baseName), "_recalcHeight",
+					function ()
+						self.$(baseName).height = self.rcl$(baseName).height + self.layBottom$(baseName).height +
+							self.$(baseName).padding.top + self.$(baseName).padding.bottom + 7;
+					end);
+			]]></script>
+			<recordList name="rcl$(baseName)" align="top" field="magias.magias.nivel$(level)" templateForm="$(templateFormForThisGroup)"
+				autoHeight="true" minHeight="5" onResize="self.$(baseName)._recalcHeight();" hitTest="false" margins="{left=10, right=10}">
+				<event name="onCompare"> return Utils.compareStringPtBr(nodeA.nome or '', nodeB.nome or ''); </event>
+			</recordList>
+			<layout name="layBottom$(baseName)" align="top" height="36">
+				<button name="btnNovo$(baseName)" align="left" onClick="self.rcl$(baseName):append();" text="@@DnD5e.spells.btn.newspell" width="160" margins="{top=4, bottom=4, left=48}"/>
+			</layout>
+		</flowPart>
+		<script>self.$(baseName)._recalcHeight();</script>
+	</template>
+
+	<template name="magicsLayout0Spc">
+		<flowLayout class="halfTile3 magicTile" height="100" avoidScale="true" maxControlsPerLine="1" autoHeight="true">
+			<magicHeader0Spc/>
+			<magicRecordListSpc level="0"/>
+		</flowLayout>
+	</template>
+
+	<template name="magicsLayoutNSpc">
+		<flowLayout class="halfTile3 magicTile" height="100" avoidScale="true" maxControlsPerLine="1" autoHeight="true">
+			<magicHeaderNSpc level="$(level)"/>
+			<magicRecordListSpc level="$(level)"/>
+		</flowLayout>
+	</template>
+
+	<template name="magicInfoFieldSpc">
+		<flowPart minWidth="30" maxWidth="800" height="35">
+			<label align="top" class="tituloCampo" fontSize="10" text="$(text)" horzTextAlign="center" wordWrap="true" textTrimming="none" autoSize="true"/>
+			<edit align="client" field="$(field)" horzTextAlign="center" fontSize="12"/>
+		</flowPart>
+	</template>
+
+	<popup name="popMagia" align='client' margins='{left=100,right=100,top=100,bottom=100}' backOpacity="0.4" autoScopeNode="false">
+		<edit align="top" field="nome" textPrompt="NOME DA MAGIA" horzTextAlign="center"/>
+		<flowLayout align="top" autoHeight="true" maxControlsPerLine="2" margins="{bottom=4}" horzAlign="center">
+			<magicInfoFieldSpc text="@@DnD5e.spells.formulationTime" field="tempoDeFormulacao"/>
+			<magicInfoFieldSpc text="@@DnD5e.spells.range" field="alcance"/>
+			<magicInfoFieldSpc text="@@DnD5e.spells.component" field="componentes"/>
+			<magicInfoFieldSpc text="@@DnD5e.spells.duration" field="duracao"/>
+			<flowPart minWidth="30" maxWidth="800" height="35">
+				<label align="top" class="tituloCampo" fontSize="10" text="@@DnD5e.generic.attack" horzTextAlign="center" autoSize="true"/>
+				<comboBox align="client" field="ataque" horzTextAlign="center" fontSize="12" items="{'@@DnD5e.spells.attack.none', '@@DnD5e.spells.attack.melee', '@@DnD5e.spells.attack.ranger'}" values="{'Sem ataque', 'Ataque Corpo-a-Corpo', 'Ataque a Distância'}"/>
+			</flowPart>
+			<flowPart minWidth="30" maxWidth="800" height="35">
+				<label align="top" class="tituloCampo" fontSize="10" text="@@DnD5e.savingThrows.title" horzTextAlign="center" autoSize="true"/>
+				<comboBox align="client" field="resistencia" horzTextAlign="center" fontSize="12" items="{'@@DnD5e.spells.resistance.none', '@@DnD5e.spells.resistance.str', '@@DnD5e.spells.resistance.dex', '@@DnD5e.spells.resistance.con', '@@DnD5e.spells.resistance.int', '@@DnD5e.spells.resistance.wis', '@@DnD5e.spells.resistance.cha'}" values="{'Nenhum', 'Força', 'Destreza', 'Constituição', 'Inteligência', 'Sabedoria', 'Carisma'}"/>
+			</flowPart>
+			<flowPart minWidth="30" maxWidth="800" height="35">
+				<label align="top" class="tituloCampo" fontSize="10" text="" horzTextAlign="center" autoSize="true"/>
+				<comboBox align="client" field="damageType" horzTextAlign="center" fontSize="12" items="{'@@DnD5e.spells.damage.none', '@@DnD5e.spells.damage'}" values="{'Sem dano', 'Dano'}"/>
+			</flowPart>
+			<magicInfoFieldSpc text="@@DnD5e.spells.damage" field="damageValue"/>
+		</flowLayout>
+		<textEditor align="client" field="descricao"/>
+	</popup>
+
+	<scrollBox align="client">
+		<flowLayout class="tile" align="top" height="500" margins="{left=10, right=10, top=10}" autoHeight="true" horzAlign="center" lineSpacing="3" name="fraMagiasLayoutSpc">
+			<flowLayout class="oneLineTile2" autoHeight="true" minScaledWidth="290" horzAlign="center">
+				<flowPart class="tile" minWidth="320" maxWidth="1600" frameStyle="frames/banner/magicGroup.xml" height="175" vertAlign="center" avoidScale="true">
+					<layout align="client">
+						<comboBox field="magias.classeConjuradora" class="transparente vcenter" fontSize="17" align="client" items="{'', 'Artificer', 'Bard', 'Cleric', 'Druid', 'Paladin', 'Ranger', 'Sorcerer', 'Warlock', 'Wizard'}" values="{'', 'Artificer', 'Bard', 'Cleric', 'Druid', 'Paladin', 'Ranger', 'Sorcerer', 'Warlock', 'Wizard'}"/>
+						<label align="bottom" text="@@DnD5e.spells.spellcasterClass" class="tituloCampo" autoSize="true" margins="{left=3}"/>
+					</layout>
+				</flowPart>
+
+				<flowLayout class="halfTile2" minWidth="320" maxWidth="1600" name="fraUpperGridMagiasSpc" avoidScale="true" frameStyle="frames/upperInfoGrid/frame.xml" autoHeight="true" vertAlign="trailing"
+					maxControlsPerLine="3" horzAlign="center" lineSpacing="8">
+					
+					<upperGridMagicComboBox minWidth="145" field="magias.habilidadeDeConjuracao" titulo="@@DnD5e.spells.spellcasterAbility"
+						items="{'', 'FORÇA', 'DESTREZA', 'CONSTITUIÇÃO', '@@DnD5e.frente.box.intelligence', '@@DnD5e.frente.box.wisdom', '@@DnD5e.frente.box.charisma'}"
+						values="{'', 'for', 'des', 'con', 'int', 'sab', 'car'}"/>
+					<upperGridMagicBox field="magias.cdDaMagia" titulo="@@DnD5e.spells.spellSaveDC"/>
+					<upperGridMagicBox field="magias.bonusAtaqueSTR" titulo="@@DnD5e.spells.spellAttackBonus"/>
+				</flowLayout>
+			</flowLayout>
+
+			<dataLink fields="{'magias.habilidadeDeConjuracao', 'atributos.modForca', 'atributos.modDestreza', 'atributos.modConstituicao', 'atributos.modInteligencia', 'atributos.modSabedoria', 'atributos.modCarisma', 'bonusProficiencia'}">
+				<event name="onChange"><![CDATA[
+					local hab, modHab, bonusProficiencia;
+					if sheet.magias == nil then sheet.magias = {}; end;
+					if sheet.atributos == nil then sheet.atributos = {}; end;
+					hab = sheet.magias.habilidadeDeConjuracao;
+					if hab == "for" then modHab = tonumber(sheet.atributos.modForca);
+					elseif hab == "des" then modHab = tonumber(sheet.atributos.modDestreza);
+					elseif hab == "con" then modHab = tonumber(sheet.atributos.modConstituicao);
+					elseif hab == "int" then modHab = tonumber(sheet.atributos.modInteligencia);
+					elseif hab == "sab" then modHab = tonumber(sheet.atributos.modSabedoria);
+					elseif hab == "car" then modHab = tonumber(sheet.atributos.modCarisma);
+					end;
+					bonusProficiencia = tonumber(sheet.bonusProficiencia) or 0;
+					if modHab ~= nil then
+						sheet.magias.cdDaMagia = 8 + modHab + bonusProficiencia;
+						local atk = modHab + bonusProficiencia;
+						if atk >= 0 then sheet.magias.bonusAtaqueSTR = "+" .. atk; else sheet.magias.bonusAtaqueSTR = tostring(atk); end;
+					else
+						sheet.magias.cdDaMagia = nil;
+						sheet.magias.bonusAtaqueSTR = nil;
+					end;
+				]]></event>
+			</dataLink>
+
+			<flowLineBreak/>
+
+			<flowLayout class="oneLineTile2" autoHeight="true" maxColumns="3" horzAlign="center" orientation="vertical">
+				<magicsLayout0Spc/>
+				<magicsLayoutNSpc level="1"/>
+				<magicsLayoutNSpc level="2"/>
+				<magicsLayoutNSpc level="3"/>
+				<magicsLayoutNSpc level="4"/>
+				<magicsLayoutNSpc level="5"/>
+				<magicsLayoutNSpc level="6"/>
+				<magicsLayoutNSpc level="7"/>
+				<magicsLayoutNSpc level="8"/>
+				<magicsLayoutNSpc level="9"/>
+			</flowLayout>
+		</flowLayout>
+	</scrollBox>
+</rectangle>

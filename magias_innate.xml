@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rectangle class="fundo">
+	<style>
+		flowLayout.magicTile, flowPart.magicTile { margins: {left=10, right=10, top=4, bottom=4}; }
+		label.magicLevelNumber { horzTextAlign: center; vertTextAlign: center; fontSize: 18; }
+		edit.magicLevelInformation { horzTextAlign: center; vertTextAlign: center; fontSize: 18; transparent: true; }
+	</style>
+
+	<template name="magicInfoFieldInn2">
+		<flowPart minWidth="30" maxWidth="800" height="35">
+			<label align="top" class="tituloCampo" fontSize="10" text="$(text)" horzTextAlign="center" wordWrap="true" textTrimming="none" autoSize="true"/>
+			<edit align="client" field="$(field)" horzTextAlign="center" fontSize="12"/>
+		</flowPart>
+	</template>
+
+	<template name="innateUsageListBox">
+		<!-- baseName = uniqueName("flwInnateUsage"); if (templateFormName == nil or templateFormName == "") then templateFormName = "frmMagiaItemComCheckbox"; end; -->
+		<layout align="client" name="$(baseName)">
+			<recordList name="rcl$(baseName)" align="client" field="$(fieldPath)" templateForm="$(templateFormName)" margins="{left=8,right=8,top=8,bottom=40}">
+				<event name="onCompare"> return Utils.compareStringPtBr(nodeA.nome or '', nodeB.nome or ''); </event>
+			</recordList>
+			<button align="bottom" height="28" text="@@DnD5e.spells.btn.newspell" onClick="self.rcl$(baseName):append();" margins="{left=8,right=8,bottom=8}"/>
+		</layout>
+	</template>
+
+	<popup name="popMagiaInnate" align='client' margins='{left=100,right=100,top=100,bottom=100}' backOpacity="0.4" autoScopeNode="false">
+		<edit align="top" field="nome" textPrompt="NOME DA MAGIA" horzTextAlign="center"/>
+		<flowLayout align="top" autoHeight="true" maxControlsPerLine="2" margins="{bottom=4}" horzAlign="center">
+			<magicInfoFieldInn2 text="@@DnD5e.spells.formulationTime" field="tempoDeFormulacao"/>
+			<magicInfoFieldInn2 text="@@DnD5e.spells.range" field="alcance"/>
+			<magicInfoFieldInn2 text="@@DnD5e.spells.component" field="componentes"/>
+			<magicInfoFieldInn2 text="@@DnD5e.spells.duration" field="duracao"/>
+			<flowPart minWidth="30" maxWidth="800" height="35">
+				<label align="top" class="tituloCampo" fontSize="10" text="@@DnD5e.generic.attack" horzTextAlign="center" autoSize="true"/>
+				<comboBox align="client" field="ataque" horzTextAlign="center" fontSize="12" items="{'@@DnD5e.spells.attack.none', '@@DnD5e.spells.attack.melee', '@@DnD5e.spells.attack.ranger'}" values="{'Sem ataque', 'Ataque Corpo-a-Corpo', 'Ataque a Distância'}"/>
+			</flowPart>
+			<flowPart minWidth="30" maxWidth="800" height="35">
+				<label align="top" class="tituloCampo" fontSize="10" text="@@DnD5e.savingThrows.title" horzTextAlign="center" autoSize="true"/>
+				<comboBox align="client" field="resistencia" horzTextAlign="center" fontSize="12" items="{'@@DnD5e.spells.resistance.none', '@@DnD5e.spells.resistance.str', '@@DnD5e.spells.resistance.dex', '@@DnD5e.spells.resistance.con', '@@DnD5e.spells.resistance.int', '@@DnD5e.spells.resistance.wis', '@@DnD5e.spells.resistance.cha'}" values="{'Nenhum', 'Força', 'Destreza', 'Constituição', 'Inteligência', 'Sabedoria', 'Carisma'}"/>
+			</flowPart>
+			<flowPart minWidth="30" maxWidth="800" height="35">
+				<label align="top" class="tituloCampo" fontSize="10" text="" horzTextAlign="center" autoSize="true"/>
+				<comboBox align="client" field="damageType" horzTextAlign="center" fontSize="12" items="{'@@DnD5e.spells.damage.none', '@@DnD5e.spells.damage'}" values="{'Sem dano', 'Dano'}"/>
+			</flowPart>
+			<magicInfoFieldInn2 text="@@DnD5e.spells.damage" field="damageValue"/>
+		</flowLayout>
+		<textEditor align="client" field="descricao"/>
+	</popup>
+
+	<scrollBox align="client">
+		<flowLayout class="tile" align="top" height="500" margins="{left=10, right=10, top=10}" autoHeight="true" horzAlign="center" lineSpacing="3" name="fraMagiasLayoutInnate">
+			<!-- Sem Spellcasting Class para innate -->
+			<flowLayout class="oneLineTile2" autoHeight="true" minScaledWidth="290" horzAlign="center">
+				<flowLayout class="oneLineTile2" minWidth="320" maxWidth="1600" name="fraUpperGridMagiasInnate" avoidScale="true" frameStyle="frames/upperInfoGrid/frame.xml" autoHeight="true" vertAlign="trailing"
+					maxControlsPerLine="3" horzAlign="center" lineSpacing="8">
+					<upperGridMagicComboBox minWidth="145" field="magiasInatas.habilidadeDeConjuracao" titulo="@@DnD5e.spells.spellcasterAbility"
+						items="{'', 'Força', 'Destreza', 'Constituição', '@@DnD5e.frente.box.intelligence', '@@DnD5e.frente.box.wisdom', '@@DnD5e.frente.box.charisma'}"
+						values="{'', 'for', 'des', 'con', 'int', 'sab', 'car'}"/>
+					<upperGridMagicBox field="magiasInatas.cdDaMagia" titulo="@@DnD5e.spells.spellSaveDC"/>
+					<upperGridMagicBox field="magiasInatas.bonusAtaqueSTR" titulo="@@DnD5e.spells.spellAttackBonus"/>
+				</flowLayout>
+			</flowLayout>
+
+			<dataLink fields="{'magiasInatas.habilidadeDeConjuracao', 'atributos.modForca', 'atributos.modDestreza', 'atributos.modConstituicao', 'atributos.modInteligencia', 'atributos.modSabedoria', 'atributos.modCarisma', 'bonusProficiencia'}">
+				<event name="onChange"><![CDATA[
+					local hab, modHab, bonusProficiencia;
+					if sheet.magiasInatas == nil then sheet.magiasInatas = {}; end;
+					if sheet.atributos == nil then sheet.atributos = {}; end;
+					hab = sheet.magiasInatas.habilidadeDeConjuracao;
+					if hab == "for" then modHab = tonumber(sheet.atributos.modForca);
+					elseif hab == "des" then modHab = tonumber(sheet.atributos.modDestreza);
+					elseif hab == "con" then modHab = tonumber(sheet.atributos.modConstituicao);
+					elseif hab == "int" then modHab = tonumber(sheet.atributos.modInteligencia);
+					elseif hab == "sab" then modHab = tonumber(sheet.atributos.modSabedoria);
+					elseif hab == "car" then modHab = tonumber(sheet.atributos.modCarisma);
+					end;
+					bonusProficiencia = tonumber(sheet.bonusProficiencia) or 0;
+					if modHab ~= nil then
+						sheet.magiasInatas.cdDaMagia = 8 + modHab + bonusProficiencia;
+						local atk = modHab + bonusProficiencia;
+						if atk >= 0 then sheet.magiasInatas.bonusAtaqueSTR = "+" .. atk; else sheet.magiasInatas.bonusAtaqueSTR = tostring(atk); end;
+					else
+						sheet.magiasInatas.cdDaMagia = nil;
+						sheet.magiasInatas.bonusAtaqueSTR = nil;
+					end;
+				]]></event>
+			</dataLink>
+
+			<flowLineBreak/>
+
+			<flowPart class="tile" minWidth="680" maxWidth="1600" frameStyle="frames/panel2/frame.xml" height="560" avoidScale="true">
+				<tabControl align="client" margins="{left=8,right=8,top=8,bottom=8}" name="tabInnateByUse">
+					<tab title="À vontade">
+						<innateUsageListBox fieldPath="magiasInatas.listas.atWill" templateFormName="frmMagiaItemSemCheckbox"/>
+					</tab>
+					<tab title="1/dia">
+						<innateUsageListBox fieldPath="magiasInatas.listas.porDia1" templateFormName="frmMagiaItemComCheckbox"/>
+					</tab>
+					<tab title="2/dia">
+						<innateUsageListBox fieldPath="magiasInatas.listas.porDia2" templateFormName="frmMagiaItemComCheckbox"/>
+					</tab>
+					<tab title="3/dia">
+						<innateUsageListBox fieldPath="magiasInatas.listas.porDia3" templateFormName="frmMagiaItemComCheckbox"/>
+					</tab>
+					<tab title="X/dia">
+						<layout align="client">
+							<edit align="top" field="magiasInatas.rotuloCustomDia" textPrompt="Ex.: 5/dia cada" margins="{left=8,right=8,top=8,bottom=4}"/>
+							<innateUsageListBox fieldPath="magiasInatas.listas.customDia" templateFormName="frmMagiaItemComCheckbox"/>
+						</layout>
+					</tab>
+					<tab title="X/semana">
+						<layout align="client">
+							<edit align="top" field="magiasInatas.rotuloCustomSemana" textPrompt="Ex.: 1/semana cada" margins="{left=8,right=8,top=8,bottom=4}"/>
+							<innateUsageListBox fieldPath="magiasInatas.listas.customSemana" templateFormName="frmMagiaItemComCheckbox"/>
+						</layout>
+					</tab>
+				</tabControl>
+			</flowPart>
+		</flowLayout>
+	</scrollBox>
+</rectangle>

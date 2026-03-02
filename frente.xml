@@ -1,0 +1,286 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<rectangle class="fundo">
+    <script>
+        
+        require("locale.lua");
+
+        function self:sortSkillBoxesOf(attrName)
+            local sortData = self.__attrSortData;
+
+            if sortData == nil then
+                return;
+            end;
+
+            local attrSortData = sortData[attrName];
+
+            if attrSortData == nil then
+                return;
+            end;
+
+            table.sort(attrSortData,
+                function (left, right)
+                    local leftStr = Locale.eval(left.title);
+                    local rightStr = Locale.eval(right.title);
+                    return Utils.compareStringPtBr(leftStr, rightStr) &lt; 0;
+                end);
+
+            for i = 1, #attrSortData, 1 do
+                local ctrl = self:findControlByName(attrSortData[i].controlName);
+
+                if ctrl ~= nil then
+                    local previousParent = ctrl:getParent();
+                    ctrl:setParent(nil);
+                    ctrl:setParent(previousParent);
+                end;
+            end;
+        end;
+
+        function self:sortFrontSkillBoxes()
+            self:sortSkillBoxesOf("forca");
+            self:sortSkillBoxesOf("destreza");
+            self:sortSkillBoxesOf("constituicao");
+            self:sortSkillBoxesOf("inteligencia");
+            self:sortSkillBoxesOf("sabedoria");
+            self:sortSkillBoxesOf("carisma");
+        end;
+
+        local function _parseCR(v)
+            local s = tostring(v or ""):gsub("%s+", ""):gsub(",", ".");
+            if s == "" then return 0 end;
+
+            local a, b = s:match("^(%d+)%/(%d+)$");
+            if a ~= nil and b ~= nil then
+                a = tonumber(a);
+                b = tonumber(b);
+                if a ~= nil and b ~= nil and b ~= 0 then
+                    return a / b;
+                end;
+            end;
+
+            return tonumber(s) or 0;
+        end;
+
+        local function _pbFromCR(cr)
+            if cr &gt;= 29 then return 9 end
+            if cr &gt;= 25 then return 8 end
+            if cr &gt;= 21 then return 7 end
+            if cr &gt;= 17 then return 6 end
+            if cr &gt;= 13 then return 5 end
+            if cr &gt;= 9  then return 4 end
+            if cr &gt;= 5  then return 3 end
+            return 2
+        end
+
+        function self:syncPbFromCR()
+            if sheet == nil then return end;
+
+            local cr = _parseCR(sheet.CR);
+            local pb = _pbFromCR(cr);
+
+            sheet.bonusProficiencia = tostring(pb);
+
+            if sheet.pericias ~= nil and sheet.pericias.bonuspercepcao ~= nil then
+                local perc = tonumber(sheet.pericias.bonuspercepcao) or 0;
+                sheet.sabedoriaPassiva = tostring(10 + perc);
+            end;
+        end
+        
+    </script>
+
+    <scrollBox align="client">
+        <flowLayout class="tile" align="top" height="500" margins="{left=10, right=10, top=10}" autoHeight="true" horzAlign="center" lineSpacing="2" name="fraFrenteLayout">
+
+            <flowLayout class="oneLineTile" autoHeight="true" minScaledWidth="290" horzAlign="center">
+                <flowPart name="flwNomeMob" minWidth="320" maxWidth="1600" frameStyle="frames/banner/dragon.xml" height="175" vertAlign="center" avoidScale="true">
+                    <layout align="client" name="layNomeHolderFrente">
+                        <edit name="edtNomeMob" field="nome" class="transparente vcenter" fontSize="17" align="client"/>
+                        <label margins="{left=3}" name="labNomeMob" align="bottom" text="Nome do Monstro" class="tituloCampo" autoSize="true"/>
+                    </layout>
+                </flowPart>
+
+                <flowLayout minWidth="320" maxWidth="1600" name="fraUpperGridFrenteMob" avoidScale="true" frameStyle="frames/upperInfoGrid/frame.xml" autoHeight="true" vertAlign="trailing" maxControlsPerLine="3">
+                    <upperGridCampo field="classeENivel" minWidth="100" titulo="Tamanho / Tipo"/>
+                    <upperGridCampo field="tendencia" titulo="Alinhamento"/>
+                    <upperGridCampo field="CR" titulo="CR"/>
+                    <upperGridCampo field="experiencia.valor" titulo="XP"/>
+                    <upperGridCampo field="raca" minWidth="100" titulo="Origem / Grupo"/>
+                    <upperGridCampo field="nomeDoJogador" titulo="Fonte / Livro"/>
+                </flowLayout>
+            </flowLayout>
+
+            <flowLineBreak/>
+
+            <flowLayout class="oneLineTile" horzAlign="justify" autoHeight="true" avoidScale="true">
+                <flowPart minWidth="240" maxWidth="700" height="64" frameStyle="frames/posCaptionEdit2/frame.xml">
+                    <edit align="left" class="pericia" field="bonusProficiencia" width="70"/>
+                    <label align="client" text="Proficiência (auto pela CR)" margins="{left=10}" class="tituloCampo" horzTextAlign="center"/>
+                </flowPart>
+
+                <flowPart minWidth="240" maxWidth="700" height="64" frameStyle="frames/posCaptionEdit2/frame.xml">
+                    <edit align="left" class="pericia" field="bonusHabilidades" width="70"/>
+                    <label align="client" text="Bônus Global de Perícias" margins="{left=10}" class="tituloCampo" horzTextAlign="center"/>
+                </flowPart>
+
+                <flowPart minWidth="240" maxWidth="700" height="64" frameStyle="frames/posCaptionEdit2/frame.xml">
+                    <edit align="left" class="pericia" field="bonusResistencias" width="70"/>
+                    <label align="client" text="Bônus Global de Resistências" margins="{left=10}" class="tituloCampo" horzTextAlign="center"/>
+                </flowPart>
+
+                <flowPart minWidth="240" maxWidth="700" height="64" frameStyle="frames/posCaptionEdit2/frame.xml">
+                    <edit align="left" class="pericia" field="sabedoriaPassiva" width="70"/>
+                    <label align="client" text="Percepção Passiva" margins="{left=10}" class="tituloCampo" horzTextAlign="center"/>
+                </flowPart>
+
+                <dataLink fields="{'CR', 'pericias.bonuspercepcao'}">
+                    <event name="onChange">
+                        self:syncPbFromCR();
+                    </event>
+                </dataLink>
+            </flowLayout>
+
+            <flowLineBreak/>
+
+            <flowLayout autoHeight="true" class="oneLineTile" minScaledWidth="290" horzAlign="center">
+                <flowLayout name="fraLayAtributos" class="tile" vertAlign="leading" autoHeight="true" minScaledWidth="290" maxControlsPerLine="2" horzAlign="center" lineSpacing="10" frameStyle="frames/panel1/frame.xml" margins="{left=2, top=2, right=16, bottom=4}" avoidScale="true">
+                    <boxAtributo titulo="FORÇA" field="forca">{{"@@DnD5e.skills.athletics", "atletismo"}}</boxAtributo>
+                    <boxAtributo titulo="DESTREZA" field="destreza">{{"@@DnD5e.skills.acrobatics", "acrobacia"}, {"@@DnD5e.skills.stealth", "furtividade"}, {"@@DnD5e.skills.sleighthand", "prestidigitacao"}}</boxAtributo>
+                    <boxAtributo titulo="CONSTITUIÇÃO" field="constituicao"/>
+                    <boxAtributo titulo="INTELIGÊNCIA" field="inteligencia">{{"@@DnD5e.skills.arcana", "arcanismo"}, {"@@DnD5e.skills.history", "historia"}, {"@@DnD5e.skills.investigation", "investigacao"}, {"@@DnD5e.skills.nature", "natureza"}, {"@@DnD5e.skills.religion", "religiao"}}</boxAtributo>
+                    <boxAtributo titulo="SABEDORIA" field="sabedoria">{{"@@DnD5e.skills.animalhandling", "adestrarAnimais"}, {"@@DnD5e.skills.insight", "intuicao"}, {"@@DnD5e.skills.medicine", "medicina"}, {"@@DnD5e.skills.perception", "percepcao"}, {"@@DnD5e.skills.survival", "sobrevivencia"}}</boxAtributo>
+                    <boxAtributo titulo="CARISMA" field="carisma">{{"@@DnD5e.skills.performance", "atuacao"}, {"@@DnD5e.skills.deception", "enganacao"}, {"@@DnD5e.skills.intimidation", "intimidacao"}, {"@@DnD5e.skills.persuasion", "persuasao"}}</boxAtributo>
+                </flowLayout>
+
+                <script>
+                    self:sortFrontSkillBoxes();
+                </script>
+
+                <flowLayout autoHeight="true" horzAlign="center" vertAlign="leading" class="halfTile" maxControlsPerLine="1">
+                    <flowLayout minWidth="235" maxWidth="475" autoHeight="true" avoidScale="false" vertAlign="center" horzAlign="justify">
+                        <flowPart stepSizes="{105}" minScaledWidth="75" height="120" frameStyle="frames/shield/frame.xml">
+                            <label align="top" text="CA" height="20" fontSize="9" wordWrap="true" horzTextAlign="center" textTrimming="none"/>
+                            <edit align="client" class="atributo transparente" field="CA" fontSize="30"/>
+                        </flowPart>
+
+                        <flowPart stepSizes="{105}" minScaledWidth="75" height="120" frameStyle="frames/panel4transp/frame.xml">
+                            <button name="initiativeBut" align="top" text="Iniciativa" height="20" fontSize="9" wordWrap="true" horzTextAlign="center" textTrimming="none" margins="{left=10,right=10}">
+                                <event name="onKeyDown"> common.keyDown(sheet, event, self.initiativeVal); </event>
+                                <event name="onKeyUp"> common.keyUp(sheet, event, self.initiativeVal); </event>
+                                <event name="onClick"> common.onClick(sheet, common.rolaIniciativa, nil, nil, true); </event>
+                                <event name="onMenu"> common.onClick(sheet, common.rolaIniciativa, nil, nil, false); </event>
+                                <event name="onMouseEnter"> self.initiativeBut:setFocus(); </event>
+                                <event name="onExit"> self.initiativeVal.fontColor = "white"; </event>
+                            </button>
+                            <edit name="initiativeVal" align="client" class="atributo transparente" field="iniciativa" fontSize="30"/>
+                        </flowPart>
+                    </flowLayout>
+
+                    <flowPart minWidth="235" maxWidth="475" minScaledWidth="200" height="175" margins="{left=2, right=2, top=4, bottom=8}">
+                        <frame align="client" frameStyle="frames/panel5/topPanel.xml" margins="{left = 4, right = 4, bottom=4}">
+                            <layout align="top" height="25">
+                                <label align="left" class="tituloCampo" autoSize="true" text="PV Máx" textTrimming="none" wordWrap="false" fontSize="12" horzTextAlign="trailing"/>
+                                <layout align="client" margins="{left=5, right=3}">
+                                    <edit align="client" class="transparente" field="PVMax" vertTextAlign="center" horzTextAlign="center"/>
+                                    <horzLine align="bottom" strokeColor="gray"/>
+                                </layout>
+                                <button text="Dano" align="right" width="50" margins="{right=5}">
+                                    <event name="onClick">
+                                        Dialogs.inputQuery("Dano", "Digite o dano", "",
+                                            function (valorPreenchido)
+                                                local dano = math.abs(tonumber(valorPreenchido) or 0)
+                                                local pvTemp = tonumber(sheet.PVTemporario) or 0
+                                                local pv = tonumber(sheet.PV) or 0
+
+                                                if dano &gt; pvTemp then
+                                                    dano = dano - pvTemp
+                                                    sheet.PVTemporario = 0
+                                                    pv = pv - dano
+                                                    sheet.PV = pv
+                                                else
+                                                    pvTemp = pvTemp - dano
+                                                    sheet.PVTemporario = pvTemp
+                                                end
+                                            end);
+                                    </event>
+                                </button>
+                            </layout>
+                            <edit align="client" field="PV" class="transparente" margins="{top=2}" horzTextAlign="center" vertTextAlign="center" fontSize="36" fontStyle="bold"/>
+                            <label align="bottom" autoSize="true" text="PV Atual" fontSize="11" vertTextAlign="center" horzTextAlign="center" fontStyle="bold"/>
+                        </frame>
+
+                        <frame align="bottom" height="70" frameStyle="frames/panel5/bottomPanel.xml" margins="{left = 4, right = 4}">
+                            <edit align="client" field="PVTemporario" class="transparente" margins="{top=2}" horzTextAlign="center" vertTextAlign="center" fontSize="36" fontStyle="bold"/>
+                            <label align="bottom" autoSize="true" text="PV Temporário" fontSize="11" vertTextAlign="center" horzTextAlign="center" fontStyle="bold"/>
+                        </frame>
+                    </flowPart>
+
+                    <flowPart frameStyle="frames/panel4transp/frame.xml" minWidth="235" maxWidth="475" minScaledWidth="235" height="132">
+                        <label align="top" text="Hit Dice" height="22" class="tituloCampo" horzTextAlign="center"/>
+                        <layout align="top" height="30" margins="{left=8,right=8,top=4}">
+                            <label align="left" width="70" text="Total" class="tituloCampo" fontSize="11"/>
+                            <edit align="client" field="DadosDeVida" class="transparente"/>
+                        </layout>
+                        <layout align="top" height="30" margins="{left=8,right=8,top=1}">
+                            <label align="left" width="70" text="Tipo" class="tituloCampo" fontSize="11"/>
+                            <comboBox align="client" field="mobHitDieTipo" class="comboGrande" items="{'d4','d6','d8','d10','d12','d20'}" values="{'d4','d6','d8','d10','d12','d20'}"/>
+                        </layout>
+                        <layout align="client" height="30" margins="{left=8,right=8,top=1,bottom=6}">
+                            <label align="left" width="70" text="Rest." class="tituloCampo" fontSize="11"/>
+                            <edit align="client" field="DadosDeVidaAtuais" class="transparente"/>
+                        </layout>
+                    </flowPart>
+
+                    <flowLayout class="oneLineTile" autoHeight="true" avoidScale="true" horzAlign="center" minScaledWidth="235">
+                        <flowPart frameStyle="frames/panel4transp/frame.xml" minWidth="235" maxWidth="475" minScaledWidth="235" height="188">
+                            <label align="top" text="Sentidos" height="22" class="tituloCampo" horzTextAlign="center"/>
+                            <layout align="top" height="26" margins="{left=6,right=6,top=4}">
+                                <label align="left" width="88" text="Blindsight" class="tituloCampo" fontSize="10"/>
+                                <edit align="client" field="mobSenseBlindsight" class="transparente"/>
+                            </layout>
+                            <layout align="top" height="26" margins="{left=6,right=6}">
+                                <label align="left" width="88" text="Darkvision" class="tituloCampo" fontSize="10"/>
+                                <edit align="client" field="mobSenseDarkvision" class="transparente"/>
+                            </layout>
+                            <layout align="top" height="26" margins="{left=6,right=6}">
+                                <label align="left" width="88" text="Tremorsense" class="tituloCampo" fontSize="10"/>
+                                <edit align="client" field="mobSenseTremorsense" class="transparente"/>
+                            </layout>
+                            <layout align="top" height="26" margins="{left=6,right=6}">
+                                <label align="left" width="88" text="Truesight" class="tituloCampo" fontSize="10"/>
+                                <edit align="client" field="mobSenseTruesight" class="transparente"/>
+                            </layout>
+                            <layout align="client" height="26" margins="{left=6,right=6,bottom=6}">
+                                <label align="left" width="88" text="Outros" class="tituloCampo" fontSize="10"/>
+                                <edit align="client" field="sentidos" class="transparente"/>
+                            </layout>
+                        </flowPart>
+
+                        <flowPart frameStyle="frames/panel4transp/frame.xml" minWidth="235" maxWidth="475" minScaledWidth="235" height="188">
+                            <label align="top" text="Movimentações" height="22" class="tituloCampo" horzTextAlign="center"/>
+                            <layout align="top" height="26" margins="{left=6,right=6,top=4}">
+                                <label align="left" width="78" text="Walk" class="tituloCampo" fontSize="10"/>
+                                <edit align="client" field="deslocamento" class="transparente"/>
+                            </layout>
+                            <layout align="top" height="26" margins="{left=6,right=6}">
+                                <label align="left" width="78" text="Fly" class="tituloCampo" fontSize="10"/>
+                                <edit align="client" field="mobMoveFly" class="transparente"/>
+                            </layout>
+                            <layout align="top" height="26" margins="{left=6,right=6}">
+                                <label align="left" width="78" text="Burrow" class="tituloCampo" fontSize="10"/>
+                                <edit align="client" field="mobMoveBurrow" class="transparente"/>
+                            </layout>
+                            <layout align="top" height="26" margins="{left=6,right=6}">
+                                <label align="left" width="78" text="Climb" class="tituloCampo" fontSize="10"/>
+                                <edit align="client" field="mobMoveClimb" class="transparente"/>
+                            </layout>
+                            <layout align="top" height="26" margins="{left=6,right=6}">
+                                <label align="left" width="78" text="Swim" class="tituloCampo" fontSize="10"/>
+                                <edit align="client" field="mobMoveSwim" class="transparente"/>
+                            </layout>
+                        </flowPart>
+                    </flowLayout>
+                </flowLayout>
+            </flowLayout>
+
+        </flowLayout>
+    </scrollBox>
+</rectangle>
